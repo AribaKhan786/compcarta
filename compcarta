@@ -1,0 +1,120 @@
+import tkinter as tk
+from tkinter import messagebox
+
+
+def get_printers():
+    return ["Printer 1", "Printer 2", "Printer 3"]
+
+def get_printer_status(printer_id):
+    return {"status": "Online", "paper_status": "Full", "ink_levels": "80%"}
+
+def send_print_job(printer_id, document, options):
+    return "Print job sent successfully"
+
+def cancel_print_job(printer_id, job_id):
+    return "Print job cancelled successfully"
+
+def get_print_queue(printer_id):
+    return [{"job_id": 1, "document": "doc1.pdf"}, {"job_id": 2, "document": "doc2.pdf"}]
+
+def perform_maintenance(printer_id, task):
+    return "Maintenance task completed successfully"
+
+class PrinterGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Printer Control GUI")
+
+        self.selected_printer = tk.StringVar()
+        self.printer_status = tk.StringVar()
+        self.print_queue = tk.StringVar()
+
+        self.create_widgets()
+        self.load_printers()
+
+    def create_widgets(self):
+        # Select printer
+        tk.Label(self.root, text="Select Printer:").grid(row=0, column=0, sticky=tk.W)
+        self.printer_list = tk.Listbox(self.root, height=3)
+        self.printer_list.grid(row=0, column=1, padx=10, pady=5)
+        self.printer_list.bind('<<ListboxSelect>>', self.on_printer_select)
+
+        # Printer status
+        tk.Label(self.root, text="Printer Status:").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.root, textvariable=self.printer_status).grid(row=1, column=1, sticky=tk.W)
+
+        # Print job options
+        tk.Label(self.root, text="Number of Copies:").grid(row=2, column=0, sticky=tk.W)
+        self.copies = tk.Entry(self.root)
+        self.copies.grid(row=2, column=1, padx=10, pady=5)
+
+        tk.Label(self.root, text="Page Range:").grid(row=3, column=0, sticky=tk.W)
+        self.page_range = tk.Entry(self.root)
+        self.page_range.grid(row=3, column=1, padx=10, pady=5)
+
+        tk.Label(self.root, text="Print Quality:").grid(row=4, column=0, sticky=tk.W)
+        self.print_quality = tk.Entry(self.root)
+        self.print_quality.grid(row=4, column=1, padx=10, pady=5)
+
+        tk.Button(self.root, text="Send Print Job", command=self.send_print_job).grid(row=5, column=1, pady=5)
+
+        # Print queue
+        tk.Label(self.root, text="Print Queue:").grid(row=6, column=0, sticky=tk.W)
+        tk.Label(self.root, textvariable=self.print_queue).grid(row=6, column=1, sticky=tk.W)
+
+        tk.Button(self.root, text="Cancel Print Job", command=self.cancel_print_job).grid(row=7, column=1, pady=5)
+        tk.Button(self.root, text="Perform Maintenance", command=self.perform_maintenance).grid(row=8, column=1, pady=5)
+
+    def load_printers(self):
+        printers = get_printers()
+        for printer in printers:
+            self.printer_list.insert(tk.END, printer)
+
+    def on_printer_select(self, event):
+        selected_index = self.printer_list.curselection()
+        if selected_index:
+            selected_printer = self.printer_list.get(selected_index)
+            self.selected_printer.set(selected_printer)
+            status = get_printer_status(selected_printer)
+            self.printer_status.set(f"Status: {status['status']}, Paper: {status['paper_status']}, Ink: {status['ink_levels']}")
+            queue = get_print_queue(selected_printer)
+            self.print_queue.set(queue)
+
+    def send_print_job(self):
+        printer = self.selected_printer.get()
+        if not printer:
+            messagebox.showerror("Error", "Please select a printer.")
+            return
+        options = {
+            "copies": self.copies.get(),
+            "page_range": self.page_range.get(),
+            "print_quality": self.print_quality.get()
+        }
+        result = send_print_job(printer, "document.pdf", options)
+        messagebox.showinfo("Info", result)
+
+    def cancel_print_job(self):
+        printer = self.selected_printer.get()
+        if not printer:
+            messagebox.showerror("Error", "Please select a printer.")
+            return
+        queue = get_print_queue(printer)
+        if queue:
+            job_id = queue[0]["job_id"]
+            result = cancel_print_job(printer, job_id)
+            messagebox.showinfo("Info", result)
+        else:
+            messagebox.showinfo("Info", "No jobs to cancel.")
+
+    def perform_maintenance(self):
+        printer = self.selected_printer.get()
+        if not printer:
+            messagebox.showerror("Error", "Please select a printer.")
+            return
+        result = perform_maintenance(printer, "clean_heads")
+        messagebox.showinfo("Info", result)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = PrinterGUI(root)
+    root.mainloop()
